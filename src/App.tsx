@@ -28,25 +28,13 @@ interface User {
   password?: string;
 }
 
-// User management functions
-const saveUser = (userData: User) => {
-  const users = JSON.parse(localStorage.getItem(STORAGE_KEYS.USERS) || '[]');
-  users.push({ ...userData, id: Date.now() });
-  localStorage.setItem(STORAGE_KEYS.USERS, JSON.stringify(users));
-};
 
-const findUser = (email: string, password: string): User | undefined => {
-  const users = JSON.parse(localStorage.getItem(STORAGE_KEYS.USERS) || '[]');
-  return users.find((u: User) => u.email === email && u.password === password);
-};
 
 const getCurrentUser = (): User | null => {
   return JSON.parse(localStorage.getItem(STORAGE_KEYS.CURRENT_USER) || 'null');
 };
 
-const setCurrentUser = (user: User) => {
-  localStorage.setItem(STORAGE_KEYS.CURRENT_USER, JSON.stringify(user));
-};
+
 
 const logout = () => {
   localStorage.removeItem(STORAGE_KEYS.CURRENT_USER);
