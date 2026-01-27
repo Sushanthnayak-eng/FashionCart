@@ -1,0 +1,5 @@
+{
+  "name": "Fashion Store",
+  "description": "A comprehensive fashion e-commerce platform with user shopping, age/gender filtering, cart management, and a secure admin dashboard.",
+  "requestFramePermissions": []
+}

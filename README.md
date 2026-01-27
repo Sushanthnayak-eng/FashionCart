@@ -1,73 +1,40 @@
-# React + TypeScript + Vite
 
-This template provides a minimal setup to get React working in Vite with HMR and some ESLint rules.
+# Fashion Store - E-commerce Student Project
 
-Currently, two official plugins are available:
+A secure, responsive fashion e-commerce platform built with React, Tailwind CSS, and TypeScript. This project simulates a marketplace like Meesho, featuring user shopping, personalized filtering, and a secure admin dashboard.
 
-- [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react) uses [Babel](https://babeljs.io/) (or [oxc](https://oxc.rs) when used in [rolldown-vite](https://vite.dev/guide/rolldown)) for Fast Refresh
-- [@vitejs/plugin-react-swc](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react-swc) uses [SWC](https://swc.rs/) for Fast Refresh
+## 🚀 Setup Instructions
 
-## React Compiler
+1.  **Extract the project**: Ensure all files are in a single directory.
+2.  **Dependencies**: The project uses CDNs for Tailwind and standard React libraries. To run locally, ensure you have Node.js installed.
+3.  **Run with Vite/Create React App**:
+    *   Initialize a new React project: `npm create vite@latest fashion-store -- --template react-ts`
+    *   Replace the generated `src` files with the files provided in this code block.
+    *   Install Router: `npm install react-router-dom`
+    *   Start development server: `npm run dev`
+4.  **Admin Access**:
+    *   Navigate to the footer and click "Admin Portal" or go to `#/admin-login`.
+    *   **Email**: `admin@fashionstore.com`
+    *   **Password**: `adminpassword123`
 
-The React Compiler is not enabled on this template because of its impact on dev & build performances. To add it, see [this documentation](https://react.dev/learn/react-compiler/installation).
+## 🛠 Features Implemented
 
-## Expanding the ESLint configuration
+*   **Custom Authentication**: Context-based session management for Users and Admins.
+*   **Protected Routes**: Prevents unauthorized access to shopping and admin pages.
+*   **Persistent State**: Uses `localStorage` to keep products and orders even after refresh.
+*   **Smart Sorting**: Prioritizes products based on User's Age and Gender selection.
+*   **Mock Payment**: Simulates a secure checkout experience with form validation.
+*   **Admin Dashboard**: Full CRUD-like interface for managing inventory and tracking sales.
 
-If you are developing a production application, we recommend updating the configuration to enable type-aware lint rules:
+## 🌟 Future Improvements (Student Tasks)
 
-```js
-export default defineConfig([
-  globalIgnores(['dist']),
-  {
-    files: ['**/*.{ts,tsx}'],
-    extends: [
-      // Other configs...
+1.  **Backend Integration**: Replace `localStorage` with a real database like **Firebase** or **MongoDB** using an Express.js backend.
+2.  **Image Uploads**: Implement a real image upload service using Cloudinary or Firebase Storage instead of placeholder URLs.
+3.  **Search Bar**: Add a global search functionality in the Navbar to find products by name.
+4.  **Product Reviews**: Allow users to leave ratings and text reviews for dresses.
+5.  **Order Tracking**: Create a user profile page where customers can see their order history and current status.
+6.  **Dark Mode**: Add a theme switcher using Tailwind's `dark:` utility classes.
+7.  **Real Payment Gateway**: Integrate the Stripe or Razorpay SDK for actual payment processing.
 
-      // Remove tseslint.configs.recommended and replace with this
-      tseslint.configs.recommendedTypeChecked,
-      // Alternatively, use this for stricter rules
-      tseslint.configs.strictTypeChecked,
-      // Optionally, add this for stylistic rules
-      tseslint.configs.stylisticTypeChecked,
-
-      // Other configs...
-    ],
-    languageOptions: {
-      parserOptions: {
-        project: ['./tsconfig.node.json', './tsconfig.app.json'],
-        tsconfigRootDir: import.meta.dirname,
-      },
-      // other options...
-    },
-  },
-])
-```
-
-You can also install [eslint-plugin-react-x](https://github.com/Rel1cx/eslint-react/tree/main/packages/plugins/eslint-plugin-react-x) and [eslint-plugin-react-dom](https://github.com/Rel1cx/eslint-react/tree/main/packages/plugins/eslint-plugin-react-dom) for React-specific lint rules:
-
-```js
-// eslint.config.js
-import reactX from 'eslint-plugin-react-x'
-import reactDom from 'eslint-plugin-react-dom'
-
-export default defineConfig([
-  globalIgnores(['dist']),
-  {
-    files: ['**/*.{ts,tsx}'],
-    extends: [
-      // Other configs...
-      // Enable lint rules for React
-      reactX.configs['recommended-typescript'],
-      // Enable lint rules for React DOM
-      reactDom.configs.recommended,
-    ],
-    languageOptions: {
-      parserOptions: {
-        project: ['./tsconfig.node.json', './tsconfig.app.json'],
-        tsconfigRootDir: import.meta.dirname,
-      },
-      // other options...
-    },
-  },
-])
-```
+---
+*Created with ❤️ for web development students.*
