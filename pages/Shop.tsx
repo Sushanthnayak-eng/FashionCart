@@ -9,7 +9,7 @@ const Shop: React.FC = () => {
   const { addToCart } = useCart();
 
   const [searchTerm, setSearchTerm] = useState('');
-  const [selectedGender, setSelectedGender] = useState<Category | 'All'>('All');
+  const [selectedStyle, setSelectedStyle] = useState<Category | 'All'>('All');
   const [selectedAge, setSelectedAge] = useState<AgeGroup | 'All'>('All');
 
   // Strict Filtering Logic
@@ -19,27 +19,25 @@ const Shop: React.FC = () => {
     // 1. Search filter: Matches name, description, or category keywords
     if (searchTerm) {
       const term = searchTerm.toLowerCase();
-      list = list.filter(p => 
+      list = list.filter(p =>
         p.name.toLowerCase().includes(term) ||
         p.description.toLowerCase().includes(term) ||
         p.category.toLowerCase().includes(term)
       );
     }
 
-    // 2. Strict Category (Gender) filter
-    // If 'All' is selected, we don't filter. Otherwise, we only keep matches.
-    if (selectedGender !== 'All') {
-      list = list.filter(p => p.category === selectedGender);
+    // 2. Strict Style (Category) filter
+    if (selectedStyle !== 'All') {
+      list = list.filter(p => p.category === selectedStyle);
     }
 
     // 3. Strict Age Group filter
-    // If 'All' is selected, we don't filter. Otherwise, we only keep matches.
     if (selectedAge !== 'All') {
       list = list.filter(p => p.ageGroup === selectedAge);
     }
 
     return list;
-  }, [products, selectedGender, selectedAge, searchTerm]);
+  }, [products, selectedStyle, selectedAge, searchTerm]);
 
   return (
     <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-10">
@@ -53,7 +51,7 @@ const Shop: React.FC = () => {
           </span>
           <input
             type="text"
-            placeholder="Search dresses, categories, or keywords..."
+            placeholder="Search dresses, styles, or keywords..."
             className="block w-full pl-12 pr-4 py-4 bg-white border border-gray-200 rounded-2xl shadow-sm focus:ring-2 focus:ring-pink-500 focus:border-transparent outline-none transition-all text-lg"
             value={searchTerm}
             onChange={(e) => setSearchTerm(e.target.value)}
@@ -65,34 +63,36 @@ const Shop: React.FC = () => {
             <h1 className="text-xl font-bold text-gray-900">Personalized Collection</h1>
             <p className="text-gray-500 text-sm">Showing {filteredProducts.length} items</p>
           </div>
-          
+
           <div className="flex flex-wrap gap-4">
             <div className="space-y-1">
-              <label className="text-xs font-bold uppercase text-gray-400">Gender</label>
-              <select 
-                value={selectedGender} 
-                onChange={(e) => setSelectedGender(e.target.value as any)}
+              <label className="text-xs font-bold uppercase text-gray-400">Style</label>
+              <select
+                value={selectedStyle}
+                onChange={(e) => setSelectedStyle(e.target.value as any)}
                 className="block w-full border-gray-200 rounded-xl text-sm focus:ring-pink-500 p-2 border outline-none cursor-pointer"
               >
-                <option value="All">All Genders</option>
-                <option value="Men">Men</option>
-                <option value="Women">Women</option>
-                <option value="Kids">Kids</option>
-                <option value="Unisex">Unisex</option>
+                <option value="All">All Styles</option>
+                <option value="Casual">Casual</option>
+                <option value="Formal">Formal</option>
+                <option value="Party">Party</option>
+                <option value="Ethnic">Ethnic</option>
+                <option value="Sleepwear">Sleepwear</option>
               </select>
             </div>
 
             <div className="space-y-1">
               <label className="text-xs font-bold uppercase text-gray-400">Age Group</label>
-              <select 
-                value={selectedAge} 
+              <select
+                value={selectedAge}
                 onChange={(e) => setSelectedAge(e.target.value as any)}
                 className="block w-full border-gray-200 rounded-xl text-sm focus:ring-pink-500 p-2 border outline-none cursor-pointer"
               >
                 <option value="All">All Ages</option>
-                <option value="Kids">Kids</option>
-                <option value="Teens">Teens</option>
-                <option value="Adults">Adults</option>
+                <option value="Kids (0-10)">Kids (0-10)</option>
+                <option value="Teens (11-18)">Teens (11-18)</option>
+                <option value="Young (19-30)">Young (19-30)</option>
+                <option value="Adults (30+)">Adults (30+)</option>
               </select>
             </div>
           </div>
@@ -106,8 +106,8 @@ const Shop: React.FC = () => {
               <div className="h-72 overflow-hidden relative">
                 <img src={product.imageUrl} alt={product.name} className="w-full h-full object-cover group-hover:scale-105 transition duration-500" />
                 <div className="absolute top-4 left-4 flex flex-col gap-2">
-                   <span className="bg-white/90 backdrop-blur px-2 py-1 rounded text-[10px] font-bold uppercase text-pink-600 shadow-sm">{product.category}</span>
-                   <span className="bg-black/50 backdrop-blur px-2 py-1 rounded text-[10px] font-bold uppercase text-white shadow-sm">{product.ageGroup}</span>
+                  <span className="bg-white/90 backdrop-blur px-2 py-1 rounded text-[10px] font-bold uppercase text-pink-600 shadow-sm">{product.category}</span>
+                  <span className="bg-black/50 backdrop-blur px-2 py-1 rounded text-[10px] font-bold uppercase text-white shadow-sm">{product.ageGroup}</span>
                 </div>
               </div>
               <div className="p-5 flex flex-col flex-grow">
@@ -115,7 +115,7 @@ const Shop: React.FC = () => {
                 <p className="text-gray-500 text-sm mb-4 line-clamp-2 flex-grow">{product.description}</p>
                 <div className="flex items-center justify-between mt-auto">
                   <span className="text-xl font-bold text-pink-600">₹{product.price}</span>
-                  <button 
+                  <button
                     onClick={() => addToCart(product)}
                     className="bg-pink-600 text-white px-4 py-2 rounded-lg text-sm font-semibold hover:bg-pink-700 transition shadow-sm active:scale-95"
                   >
@@ -131,8 +131,8 @@ const Shop: React.FC = () => {
           <div className="text-6xl mb-4">👗</div>
           <h2 className="text-2xl font-bold text-gray-900">No dresses found.</h2>
           <p className="text-gray-500 mt-2">Try adjusting your filters to find the perfect fit!</p>
-          <button 
-            onClick={() => {setSearchTerm(''); setSelectedGender('All'); setSelectedAge('All');}}
+          <button
+            onClick={() => { setSearchTerm(''); setSelectedStyle('All'); setSelectedAge('All'); }}
             className="mt-8 bg-pink-100 text-pink-600 px-6 py-2 rounded-xl font-bold hover:bg-pink-200 transition"
           >
             Clear All Filters

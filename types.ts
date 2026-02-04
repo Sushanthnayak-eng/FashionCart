@@ -1,8 +1,8 @@
 
 export type Role = 'USER' | 'ADMIN';
 
-export type Category = 'Men' | 'Women' | 'Kids' | 'Unisex';
-export type AgeGroup = 'Kids' | 'Teens' | 'Adults';
+export type Category = 'Casual' | 'Formal' | 'Party' | 'Ethnic' | 'Sleepwear';
+export type AgeGroup = 'Kids (0-10)' | 'Teens (11-18)' | 'Young (19-30)' | 'Adults (30+)';
 
 export interface User {
   id: string;

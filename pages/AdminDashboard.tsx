@@ -1,12 +1,10 @@
 
 import React, { useState, useMemo, useRef } from 'react';
-import { ref, uploadBytesResumable, getDownloadURL } from 'firebase/storage';
-import { storage } from '../db/firebase';
 import { useProducts } from '../context/ProductContext';
 import { Category, AgeGroup, Order } from '../types';
 
 const AdminDashboard: React.FC = () => {
-  const { products, orders, addProduct, updateProduct } = useProducts();
+  const { products, orders, addProduct, updateProduct, deleteProduct, clearAllData } = useProducts();
   const [activeTab, setActiveTab] = useState<'products' | 'orders' | 'add' | 'stats'>('products');
   const fileInputRef = useRef<HTMLInputElement>(null);
   const editFileInputRef = useRef<HTMLInputElement>(null);
@@ -20,8 +18,8 @@ const AdminDashboard: React.FC = () => {
     name: '',
     price: 0,
     description: '',
-    category: 'Men' as Category,
-    ageGroup: 'Adults' as AgeGroup,
+    category: 'Casual' as Category,
+    ageGroup: 'Adults (30+)' as AgeGroup,
     imageUrl: '',
     imageFile: null as File | null
   });
@@ -32,8 +30,8 @@ const AdminDashboard: React.FC = () => {
     name: '',
     price: 0,
     description: '',
-    category: 'Men' as Category,
-    ageGroup: 'Adults' as AgeGroup,
+    category: 'Casual' as Category,
+    ageGroup: 'Adults (30+)' as AgeGroup,
     imageUrl: '',
     imageFile: null as File | null
   });
@@ -53,20 +51,49 @@ const AdminDashboard: React.FC = () => {
     }
   };
 
-  // Upload function
+  // Upload function - converts image to base64 data URL
+  // This completely bypasses Firebase Storage CORS issues
   const uploadImage = async (file: File): Promise<string> => {
-    const storageRef = ref(storage, `products/${Date.now()}_${file.name}`);
-    const uploadTask = uploadBytesResumable(storageRef, file);
+    return compressAndConvertToBase64(file, file.size > 500 * 1024 ? 0.6 : 0.8);
+  };
 
+  // Helper function to compress and convert image to base64
+  const compressAndConvertToBase64 = (file: File, quality: number): Promise<string> => {
     return new Promise((resolve, reject) => {
-      uploadTask.on('state_changed',
-        null,
-        (error) => reject(error),
-        async () => {
-          const downloadURL = await getDownloadURL(uploadTask.snapshot.ref);
-          resolve(downloadURL);
-        }
-      );
+      const reader = new FileReader();
+      reader.onload = (e) => {
+        const img = new Image();
+        img.onload = () => {
+          const canvas = document.createElement('canvas');
+          // Resize if too large (max 800px width/height)
+          let width = img.width;
+          let height = img.height;
+          const maxSize = 800;
+
+          if (width > maxSize || height > maxSize) {
+            if (width > height) {
+              height = (height / width) * maxSize;
+              width = maxSize;
+            } else {
+              width = (width / height) * maxSize;
+              height = maxSize;
+            }
+          }
+
+          canvas.width = width;
+          canvas.height = height;
+          const ctx = canvas.getContext('2d');
+          ctx?.drawImage(img, 0, 0, width, height);
+
+          // Convert to base64 with compression
+          const base64 = canvas.toDataURL('image/jpeg', quality);
+          resolve(base64);
+        };
+        img.onerror = () => reject(new Error('Failed to load image'));
+        img.src = e.target?.result as string;
+      };
+      reader.onerror = () => reject(new Error('Failed to read file'));
+      reader.readAsDataURL(file);
     });
   };
 
@@ -93,7 +120,7 @@ const AdminDashboard: React.FC = () => {
         imageUrl: finalImageUrl
       });
 
-      setFormData({ name: '', price: 0, description: '', category: 'Men', ageGroup: 'Adults', imageUrl: '', imageFile: null });
+      setFormData({ name: '', price: 0, description: '', category: 'Casual', ageGroup: 'Adults (30+)', imageUrl: '', imageFile: null });
       if (fileInputRef.current) fileInputRef.current.value = '';
       setActiveTab('products');
       alert('Product Added Successfully!');
@@ -158,6 +185,21 @@ const AdminDashboard: React.FC = () => {
           <p className="text-gray-500">Manage your fashion store inventory and sales</p>
         </div>
         <div className="flex items-center space-x-3">
+          <button
+            onClick={async () => {
+              if (window.confirm('CRITICAL: This will PERMANENTLY delete all products and orders. Continue?')) {
+                try {
+                  await clearAllData();
+                  alert('Database and browser storage wiped successfully.');
+                } catch (e) {
+                  alert('Failed to clear database. check console.');
+                }
+              }
+            }}
+            className="bg-red-50 text-red-600 px-4 py-2 rounded-xl text-xs font-bold uppercase border border-red-200 hover:bg-red-600 hover:text-white transition shadow-sm"
+          >
+            Reset Database
+          </button>
           <div className="bg-pink-100 text-pink-700 px-4 py-2 rounded-xl text-sm font-bold uppercase border border-pink-200">
             Store Status: Live
           </div>
@@ -186,7 +228,7 @@ const AdminDashboard: React.FC = () => {
             <thead className="bg-gray-50 border-b">
               <tr>
                 <th className="p-5 font-bold text-gray-600 text-xs uppercase tracking-widest">Product Info</th>
-                <th className="p-5 font-bold text-gray-600 text-xs uppercase tracking-widest">Category</th>
+                <th className="p-5 font-bold text-gray-600 text-xs uppercase tracking-widest">Style</th>
                 <th className="p-5 font-bold text-gray-600 text-xs uppercase tracking-widest">Pricing</th>
                 <th className="p-5 font-bold text-gray-600 text-xs uppercase tracking-widest text-right">Action</th>
               </tr>
@@ -205,8 +247,18 @@ const AdminDashboard: React.FC = () => {
                     <span className="bg-gray-100 px-3 py-1 rounded-full text-xs font-semibold text-gray-600">{p.category}</span>
                   </td>
                   <td className="p-5 font-bold text-gray-900">₹{p.price}</td>
-                  <td className="p-5 text-right">
-                    <button onClick={() => handleEdit(p)} className="text-pink-600 hover:bg-pink-50 p-2 rounded-lg transition">Edit</button>
+                  <td className="p-5 text-right flex items-center justify-end space-x-2">
+                    <button onClick={() => handleEdit(p)} className="text-pink-600 hover:bg-pink-50 p-2 rounded-lg transition font-bold text-xs uppercase">Edit</button>
+                    <button
+                      onClick={async () => {
+                        if (window.confirm(`Delete ${p.name}?`)) {
+                          await deleteProduct(p.id);
+                        }
+                      }}
+                      className="text-gray-400 hover:text-red-600 p-2 rounded-lg transition"
+                    >
+                      <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" /></svg>
+                    </button>
                   </td>
                 </tr>
               ))}
@@ -231,20 +283,22 @@ const AdminDashboard: React.FC = () => {
                   </div>
                   <div className="grid grid-cols-2 gap-4">
                     <div>
-                      <label className="block text-xs font-bold text-gray-500 mb-1">Category</label>
+                      <label className="block text-xs font-bold text-gray-500 mb-1">Style</label>
                       <select value={editFormData.category} onChange={e => setEditFormData({ ...editFormData, category: e.target.value as Category })} className="w-full p-3 border-2 border-gray-100 rounded-xl focus:border-pink-400 outline-none">
-                        <option value="Men">Men</option>
-                        <option value="Women">Women</option>
-                        <option value="Kids">Kids</option>
-                        <option value="Unisex">Unisex</option>
+                        <option value="Casual">Casual</option>
+                        <option value="Formal">Formal</option>
+                        <option value="Party">Party</option>
+                        <option value="Ethnic">Ethnic</option>
+                        <option value="Sleepwear">Sleepwear</option>
                       </select>
                     </div>
                     <div>
                       <label className="block text-xs font-bold text-gray-500 mb-1">Age Group</label>
                       <select value={editFormData.ageGroup} onChange={e => setEditFormData({ ...editFormData, ageGroup: e.target.value as AgeGroup })} className="w-full p-3 border-2 border-gray-100 rounded-xl focus:border-pink-400 outline-none">
-                        <option value="Adults">Adults</option>
-                        <option value="Teens">Teens</option>
-                        <option value="Kids">Kids</option>
+                        <option value="Kids (0-10)">Kids (0-10)</option>
+                        <option value="Teens (11-18)">Teens (11-18)</option>
+                        <option value="Young (19-30)">Young (19-30)</option>
+                        <option value="Adults (30+)">Adults (30+)</option>
                       </select>
                     </div>
                   </div>
@@ -342,12 +396,22 @@ const AdminDashboard: React.FC = () => {
                   <input required type="number" value={formData.price} onChange={e => setFormData({ ...formData, price: Number(e.target.value) })} className="w-full p-4 bg-gray-50 border-2 border-gray-100 rounded-2xl focus:border-pink-500 outline-none" />
                 </div>
                 <div className="space-y-1">
-                  <label className="text-sm font-bold text-gray-700">Department</label>
+                  <label className="text-sm font-bold text-gray-700">Style Category</label>
                   <select value={formData.category} onChange={e => setFormData({ ...formData, category: e.target.value as Category })} className="w-full p-4 bg-gray-50 border-2 border-gray-100 rounded-2xl outline-none">
-                    <option value="Men">Men</option>
-                    <option value="Women">Women</option>
-                    <option value="Kids">Kids</option>
-                    <option value="Unisex">Unisex</option>
+                    <option value="Casual">Casual</option>
+                    <option value="Formal">Formal</option>
+                    <option value="Party">Party</option>
+                    <option value="Ethnic">Ethnic</option>
+                    <option value="Sleepwear">Sleepwear</option>
+                  </select>
+                </div>
+                <div className="space-y-1">
+                  <label className="text-sm font-bold text-gray-700">Recommended Age</label>
+                  <select value={formData.ageGroup} onChange={e => setFormData({ ...formData, ageGroup: e.target.value as AgeGroup })} className="w-full p-4 bg-gray-50 border-2 border-gray-100 rounded-2xl outline-none">
+                    <option value="Kids (0-10)">Kids (0-10)</option>
+                    <option value="Teens (11-18)">Teens (11-18)</option>
+                    <option value="Young (19-30)">Young (19-30)</option>
+                    <option value="Adults (30+)">Adults (30+)</option>
                   </select>
                 </div>
               </div>
